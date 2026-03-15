@@ -1,0 +1,4 @@
+ARTIFACTS_DIR = 'Artifacts'
+DATA_INGESTION_DIR = 'data_ingestion'
+INGESTION_TRAIN_FILE_NAME = 'train.csv'
+INGESTION_TEST_FILE_NAME = 'test.csv'
