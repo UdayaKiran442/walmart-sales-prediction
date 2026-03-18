@@ -9,4 +9,7 @@ TRANSFORMED_DATA_DIR = 'transformed_data'
 TRANSFORMED_OBJECT_DIR = 'transformated_object'
 TRANSFORMED_TRAIN_FILE_NAME = 'train.npy'
 TRANSFORMED_TEST_FILE_NAME = 'test.npy'
-TRANSFORMED_OBJECT_FILE_NAME = 'preprocessor.pkl'
+TRANSFORMED_OBJECT_FILE_NAME = 'preprocessor.skops'
+
+MODEL_TRAINER_DIR = 'model_trainer'
+TRAINED_MODEL_FILE_NAME = 'trained_model.skops'
