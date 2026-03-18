@@ -8,3 +8,5 @@ dagshub
 mlflow
 optuna
 skops
+fastapi
+fastapi[standard]
