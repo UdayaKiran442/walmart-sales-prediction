@@ -1,4 +1,5 @@
 import pandas as pd
+from sagemaker.core.helper.session_helper import Session
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -13,6 +14,13 @@ class PredictSalesSchema(BaseModel):
     size: int
 
 app = FastAPI()
+
+@app.get("/test")
+def test():
+    sagemaker_session = Session()
+    print("Sagemaker session created successfully")
+    region = sagemaker_session.boto_region_name
+    return {"region": region}
 
 @app.post("/predict-sales")
 def predict_sales(payload: PredictSalesSchema):

@@ -4,12 +4,15 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+from sagemaker.core.helper.session_helper import Session
 
 from src.utils.utils import save_object, load_numpy_array_data
 from src.entity.model_trainer_entity import ModelTrainerEntityConfig, ModelTrainerEntityArtifact
 from src.entity.data_transformation_entity import DataTransformationArtifactEntity
 
 load_dotenv()
+
+sagemaker_session = Session()
 
 class ModelTrainer:
     def __init__(self, model_trainer_entity_config: ModelTrainerEntityConfig, data_transformation_artifact_entity: DataTransformationArtifactEntity):
@@ -33,19 +36,6 @@ class ModelTrainer:
 
         X_test = test_arr[:, :-1]
         y_test = test_arr[:, -1]
-
-        with mlflow.start_run(run_name="Linear Regression"):
-            lr = LinearRegression()
-            lr.fit(X_train, y_train)
-            y_pred_lr = lr.predict(X_test)
-            mae = mean_absolute_error(y_test, y_pred_lr)
-            r2 = r2_score(y_test, y_pred_lr)
-            mse = mean_squared_error(y_test, y_pred_lr)
-            mlflow.log_metric("mae", mae)
-            mlflow.log_metric("r2", r2)
-            mlflow.log_metric("mse", mse)
-            mlflow.sklearn.log_model(lr, "model")
-        mlflow.end_run()
         
         with mlflow.start_run(run_name="Random Forest Regressor"):
             param_grid = {'n_estimators': 100, 'min_samples_split': 2, 'max_depth': 30}
@@ -84,6 +74,8 @@ class ModelTrainer:
         model_file_path = self.model_trainer_entity_config.trained_model_file_path
         print("Saving model to:", model_file_path)
         save_object(file_path=model_file_path, obj=model)
+        # compress the model file and upload to s3 using tarfile and sagemaker session
+        sagemaker_session.upload_data(path=model_file_path, bucket="<write bucket name here>")
         return ModelTrainerEntityArtifact(trained_model_file_path=model_file_path)
        
         

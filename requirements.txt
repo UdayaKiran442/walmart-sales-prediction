@@ -10,3 +10,4 @@ optuna
 skops
 fastapi
 fastapi[standard]
+sagemaker
