@@ -1,4 +1,4 @@
-import os, pickle
+import os, pickle, tarfile
 import skops.io as sio
 import numpy as np
 import pandas as pd
@@ -68,3 +68,9 @@ def load_object(file_path: str):
     except Exception as e:
         print(f"Error occurred while saving object using skops: {e}")
         raise e
+
+def save_object_as_tarfile(file_path: str, compressed_file_path: str) -> None:
+    print(f"Compressing {file_path} to {compressed_file_path}")
+    os.makedirs(os.path.dirname(compressed_file_path), exist_ok=True)
+    with tarfile.open(compressed_file_path, "w:gz") as tar:
+        tar.add(file_path)

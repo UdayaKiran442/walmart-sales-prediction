@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
+from sagemaker.core.helper.session_helper import Session
 
 from src.entity.data_ingestion_entity import DataIngestionArtifactEntity
 from src.entity.data_transformation_entity import DataTransformationEntityConfig, DataTransformationArtifactEntity
 
-from src.utils.utils import split_date, clean_df, get_transformation_pipeline, save_numpy_array_data, save_object
+from src.utils.utils import split_date, clean_df, get_transformation_pipeline, save_numpy_array_data, save_object, save_object_as_tarfile
 
+sagemaker_session = Session()
+   
 class DataTransformation:
     def __init__(self, data_transformation_entity_config: DataTransformationEntityConfig, data_ingestion_artifact_entity: DataIngestionArtifactEntity):
         self.data_transformation_entity_config = data_transformation_entity_config
@@ -38,6 +41,9 @@ class DataTransformation:
             save_numpy_array_data(file_path=self.data_transformation_entity_config.data_transformation_train_file_path, array=train_arr)
             save_numpy_array_data(file_path=self.data_transformation_entity_config.data_transformation_test_file_path, array=test_arr)
             save_object(file_path=self.data_transformation_entity_config.data_transformation_object_file_path, obj=transformation_object)
+            save_object_as_tarfile(file_path=self.data_transformation_entity_config.data_transformation_object_file_path, compressed_file_path=self.data_transformation_entity_config.data_transformation_object_tarfile_path)
+            sagemaker_session.upload_data(path=self.data_transformation_entity_config.data_transformation_object_tarfile_path, bucket="walmart-prediction-storage")
+
 
             return DataTransformationArtifactEntity(
                 data_transformation_object_file_path=self.data_transformation_entity_config.data_transformation_object_file_path,
@@ -47,5 +53,4 @@ class DataTransformation:
 
 
         except Exception as e:
-            print(f"Error occurred during data transformation: {e}")
             raise e
