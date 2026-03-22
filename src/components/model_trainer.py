@@ -1,13 +1,14 @@
 import mlflow, dagshub, os
 from dotenv import load_dotenv
-from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 from sagemaker.core.helper.session_helper import Session
+from sagemaker.serve import ModelBuilder
 
 from src.utils.utils import save_object, load_numpy_array_data, save_object_as_tarfile
 from src.entity.model_trainer_entity import ModelTrainerEntityConfig, ModelTrainerEntityArtifact
 from src.entity.data_transformation_entity import DataTransformationArtifactEntity
+from src.constants.constants import COMPRESSED_MODEL_FILE_NAME
 
 load_dotenv()
 
@@ -52,7 +53,18 @@ class ModelTrainer:
             compressed_model_file_path = self.model_trainer_entity_config.trained_model_tarfile_path
             save_object(file_path=model_file_path, obj=rf)
             save_object_as_tarfile(file_path=model_file_path, compressed_file_path=compressed_model_file_path)
-            sagemaker_session.upload_data(path=compressed_model_file_path, bucket="walmart-prediction-storage")
+            sagemaker_session.upload_data(path=compressed_model_file_path, bucket=os.getenv("S3_BUCKET_NAME"))
+            # deploy model to sagemaker
+            model_builder = ModelBuilder(
+                model="WalmartSalesPredictionModel",
+                model_path= f"s3://{os.getenv('S3_BUCKET_NAME')}/{os.getenv('PREFIX')}/{COMPRESSED_MODEL_FILE_NAME}",
+            )
+            model = model_builder.build(model_name="walmart-sales-prediction-model")
+            endpoint = model.deploy(
+                initial_instance_count=1,
+                instance_type="ml.m5.large",
+                endpoint_name="walmart-sales-prediction-endpoint"
+            )
             return ModelTrainerEntityArtifact(trained_model_file_path=model_file_path)        
         except Exception as e:
             raise e
